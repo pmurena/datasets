@@ -11,10 +11,10 @@ import requests
 off_url_src = "imagenet.txt"
 img_base_dir = os.getcwd()
 nb_threads = 4
-file_entires = []
+file_lines = []
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "i:")
+    opts, args = getopt.getopt(sys.argv[1:], "d:f:")
 except getopt.GetoptError:
     print('bad argument error, usage:')
     print('\targs1.py -d <base_directory> -f <input_file_name>')
@@ -24,6 +24,8 @@ except getopt.GetoptError:
 
 for opt, arg in opts:
     if opt == "-d":
+        if not arg[-1:] == "/":
+            arg = arg + "/"
         img_base_dir = arg
     elif opt == "-f":
         off_url_src = arg
@@ -31,7 +33,7 @@ for opt, arg in opts:
 print("reading data")
 with open(off_url_src, "r", errors="ignore") as f:
     for data in f.readlines():
-        file_entires.append(data.split())
+        file_lines.append(data.split())
 f.close()
 print("data loaded")
 
@@ -41,17 +43,22 @@ offsets_list = [(s.offset(), s) for s in syns]
 offsets_dict = dict(offsets_list)
 print("wordnet built")
 
+print("create directories")
+for d in offsets_dict:
+    tmp_dir = img_base_dir + offsets_dict[d].lemma_names()[0]
+    if not os.path.exists(tmp_dir):
+        os.makedirs(tmp_dir)
+print("directories created")
+
 
 def download(th):
     print("thread ", th, " started")
     n = 0
-    while file_entires:
+    while file_lines:
         print("thread ", th, " working on image ", n)
-        entry = file_entires.pop()
-        cat = offsets_dict[int(fa("n(\d+)_*", entry[0])[0])].name().split(".")[0]
+        entry = file_lines.pop()
+        cat = offsets_dict[int(fa("n(\d+)_*", entry[0])[0])].lemma_names()[0]
         directory = img_base_dir + cat
-        if not os.path.exists(directory):
-            os.makedirs(directory)
         img_name = cat + "_" + str(th) + "_" + str(n) + entry[1][-4:]
         print("thread ", th, "downloading: ", entry[1])
         try:
@@ -65,7 +72,7 @@ def download(th):
             handler.close()
         print("thread ", th, " image ", n, "done")
         n = n + 1
-    print("thread ", th, "done")
+    print("thread ", th, "all done")
 
 
 for n in range(1, nb_threads + 1):
