@@ -45,8 +45,8 @@ def download(th):
         with open(img_path, 'wb') as handler:
             handler.write(img_data)
             handler.close()
-        n = n + 1
         print("thread ", th, " image ", n, "done")
+        n = n + 1
     print("thread ", th, "done")
 
 for n in range(1, nb_threads + 1):
