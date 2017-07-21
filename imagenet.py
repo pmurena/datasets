@@ -3,13 +3,30 @@
 from nltk.corpus import wordnet as wn
 from re import findall as fa
 import os
+import getopt
+import sys
 from threading import Thread
 import requests
 
 off_url_src = "imagenet.txt"
-img_base_dir = "/full/path/to/image/dir/"
-nb_threads = 12
+img_base_dir = os.getcwd()
+nb_threads = 4
 file_entires = []
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "i:")
+except getopt.GetoptError:
+    print('bad argument error, usage:')
+    print('\targs1.py -d <base_directory> -f <input_file_name>')
+    print('\ndefault:\n\t-d <current working directory>\n\t-f <imagenet.txt>')
+    sys.exit(2)
+
+
+for opt, arg in opts:
+    if opt == "-d":
+        img_base_dir = arg
+    elif opt == "-f":
+        off_url_src = arg
 
 print("reading data")
 with open(off_url_src, "r", errors="ignore") as f:
@@ -23,6 +40,7 @@ syns = list(wn.all_synsets())
 offsets_list = [(s.offset(), s) for s in syns]
 offsets_dict = dict(offsets_list)
 print("wordnet built")
+
 
 def download(th):
     print("thread ", th, " started")
@@ -48,6 +66,7 @@ def download(th):
         print("thread ", th, " image ", n, "done")
         n = n + 1
     print("thread ", th, "done")
+
 
 for n in range(1, nb_threads + 1):
     thread = Thread(target=download, args=(n,))
