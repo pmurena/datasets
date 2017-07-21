@@ -7,7 +7,7 @@ from threading import Thread
 import requests
 
 off_url_src = "imagenet.txt"
-img_base_dir = "/home/pat/data/imagenet/"
+img_base_dir = "/full/path/to/image/dir/"
 nb_threads = 12
 file_entires = []
 
